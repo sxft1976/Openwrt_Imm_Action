@@ -31,9 +31,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-
-    steps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1000
+    steps:    
     - name: Check Server Performance
       run: |
         echo "警告⚠"
@@ -47,63 +47,54 @@ jobs:
         echo -e "$(sudo lshw -short -C memory | grep GiB) \n"
         echo "--------------------------硬盘信息--------------------------"
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
-        
+      
+   
     - name: Freeing up disk space
       uses: easimon/maximize-build-space@master
-      with:         
-          root-reserve-mb: 6144
-          swap-size-mb: 10240
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'true'
-          build-mount-path: '/workdir'
-          
-    - name: Free up disk space complete
-      run: |
-        echo "Free up disk space complete"
-        echo "=============================================================================="
-        df -hT
-        echo "=============================================================================="
+      with: 
+        root-reserve-mb: 6144
+        swap-size-mb: 10240
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
+        build-mount-path: '/workdir'
 
     - name: Checkout
       uses: actions/checkout@main
+      
        
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
-      run: |       
+      run: |             
         sudo -E apt-get -qq update
-        sudo -E apt-get -qq install $(curl -fsSL https://github.com/smallprogram/OpenWrtAction/raw/main/diy_script/lede_dependence)
+        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/Actions-OpenWrt/raw/main/diy_script/immortalwrt_dependence)
         sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
         sudo timedatectl set-timezone "$TZ"
         df -hT
-        ls
-
-                    
+        ls 
+                       
     - name: Clone source code
       working-directory: /workdir
-      run: | 
-        cd /workdir
+      run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-        
-           
-    
+
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
-        cd /workdir/openwrt
+        cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Update feeds
-      run: cd /workdir/openwrt && ./scripts/feeds update -a
+      run: cd openwrt && ./scripts/feeds update -a
 
     - name: Install feeds
-      run: cd /workdir/openwrt && ./scripts/feeds install -a
+      run: cd openwrt && ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
@@ -111,15 +102,39 @@ jobs:
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         cat /workdir/openwrt/.config
         chmod +x $DIY_P2_SH
-        cd /workdir/openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+        cd openwrt        
+        $GITHUB_WORKSPACE/$DIY_P2_SH 
+        mkdir -p /workdir/openwrt/dl
+        cp -r $GITHUB_WORKSPACE/library/* /workdir/openwrt/dl/
         df -hT
 
+    - name: Get architecture
+      working-directory: /workdir/openwrt
+      run: |
+        TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | sed 's/=y//g'| awk -F '_' '{print $1}')"
+        echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}" >>$GITHUB_ENV
+        echo "MIXKEY=x86_64" >>$GITHUB_ENV
+        
+    - name: cache
+      uses: stupidloud/cachewrtbuild@main
+      with:
+        ccache: 'true'
+        #mixkey: ${{ env.TARGET_DEVICE_ARCH }}
+        mixkey: ${{ env.MIXKEY }}
+        toolchain: 'true'
+        clean: ${{github.event.inputs.clean}}
+        prefix: ${{ github.workspace }}/openwrt
+        #ccache: 'flase'
+        #mixkey: ${{ env.MIXKEY }}
+        #toolchain: 'true'
+        #skip: true
+        #clean: flase
+        #prefix: /workdir/openwrt    
+ 
     - name: Download package
       id: package
       run: |
-        df -hT        
-        cd /workdir/openwrt
+        cd openwrt
         make defconfig
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
@@ -129,7 +144,7 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd /workdir/openwrt
+        cd openwrt
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
@@ -197,5 +212,3 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  
