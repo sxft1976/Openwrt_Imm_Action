@@ -54,7 +54,9 @@ git clone https://github.com/destan19/OpenAppFilter.git ./package/custom_package
 git clone https://github.com/sirpdboy/netspeedtest.git ./package/custom_packages/netspeedtest
 
 
+# delete packages
+rm -rf ./feeds/packages/net/geoview
+
+
 # smartdns
 # git clone https://github.com/pymumu/smartdns.git ./package/custom_packages/smartdns
-
-# rm -rf ./package/network/utils/nftables/patches/002-nftables-add-fullcone-expression-support.patch
