@@ -35,16 +35,13 @@ git clone https://github.com/rufengsuixing/luci-app-adguardhome.git ./package/cu
 
 # mosdns
 
-rm -rf feeds/packages/lang/golang
-git clone https://github.com/sbwml/packages_lang_golang -b 23.x ./feeds/packages/lang/golang
-
 # find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
 # find ./ | grep Makefile | grep mosdns | xargs rm -f
 rm -rf ./feeds/luci/applications/luci-app-mosdns/
 rm -rf ./feeds/packages/net/mosdns/
 # rm -rf feeds/packages/net/v2ray-geodata/
 git clone https://github.com/sbwml/luci-app-mosdns -b v5 ./package/custom_packages/mosdns
-git clone https://github.com/sbwml/v2ray-geodata ./package/custom_packages/v2ray-geodata
+# git clone https://github.com/sbwml/v2ray-geodata ./package/custom_packages/v2ray-geodata
 
 # git clone https://github.com/jerrykuku/lua-maxminddb.git
 # git clone https://github.com/jerrykuku/luci-app-vssr.git
