@@ -55,6 +55,14 @@ git clone https://github.com/destan19/OpenAppFilter.git ./package/custom_package
 # Speedtest
 git clone https://github.com/sirpdboy/netspeedtest.git ./package/custom_packages/netspeedtest
 
+# Add default login background
+cp -r $GITHUB_WORKSPACE/source/video/* ./package/custom_packages/luci-theme-argon/htdocs/luci-static/argon/background/
+cp -r $GITHUB_WORKSPACE/source/img/* ./package/custom_packages/luci-theme-argon/htdocs/luci-static/argon/background/
+
+# Inject download package
+mkdir -p $GITHUB_WORKSPACE/openwrt/dl
+cp -r $GITHUB_WORKSPACE/library/* $GITHUB_WORKSPACE/openwrt/dl/
+
 
 # smartdns
 # 由lean package维护版本
