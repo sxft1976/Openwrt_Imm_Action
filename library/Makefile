@@ -39,7 +39,7 @@ define Package/libcryptopp/description
   use of templates and abstract base classes.
 endef
 
-PKG_BUILD_FILE:=cryptopp-autotools$(subst .,,$(PKG_VERSION)).zip
+PKG_BUILD_FILE:=cryptopp-autotools$(subst .,,$(PKG_VERSION2)).zip
 define Download/autotools
   URL:=https://github.com/noloader/cryptopp-autotools/releases/download/CRYPTOPP_$(subst .,_,$(PKG_VERSION))/
   FILE:=$(PKG_BUILD_FILE)
