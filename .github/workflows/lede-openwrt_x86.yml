@@ -140,6 +140,7 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         df -hT $PWD
+        
 
     - name: Compile the firmware
       id: compile
