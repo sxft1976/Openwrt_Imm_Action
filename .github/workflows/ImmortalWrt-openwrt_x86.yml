@@ -124,12 +124,7 @@ jobs:
         toolchain: 'true'
         clean: ${{github.event.inputs.clean}}
         prefix: ${{ github.workspace }}/openwrt
-        #ccache: 'flase'
-        #mixkey: ${{ env.MIXKEY }}
-        #toolchain: 'true'
-        #skip: true
-        #clean: flase
-        #prefix: /workdir/openwrt    
+         
  
     - name: Download package
       id: package
