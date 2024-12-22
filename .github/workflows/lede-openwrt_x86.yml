@@ -83,10 +83,9 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
         cd /workdir/openwrt/package/lean/libcryptopp
-        sed 's/8.5.0/8_5_0/2' ./Makefile
-        sed '12i\PKG_VERSION2:=850' ./Makefile
-        sed 's/PKG_VERSION/PKG_VERSION2/2' ./Makefile
-        sed -n ‘1,20p’ ./Makefile
+        rm /workdir/openwrt/package/lean/libcryptopp/Makefile
+        cp -r $GITHUB_WORKSPACE/library/Makefile  /workdir/openwrt/package/lean/libcryptopp/Makefile
+        cat /workdir/openwrt/package/lean/libcryptopp/Makefile
 
     - name: Load custom feeds
       run: |
