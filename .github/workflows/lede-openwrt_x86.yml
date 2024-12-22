@@ -107,6 +107,7 @@ jobs:
         mkdir -p /workdir/openwrt/dl
         cp -r $GITHUB_WORKSPACE/library/* /workdir/openwrt/dl/
         df -hT
+        ls /workdir/openwrt/dl/
 
     - name: Get architecture
       working-directory: /workdir/openwrt
