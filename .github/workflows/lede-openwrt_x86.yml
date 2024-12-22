@@ -108,8 +108,8 @@ jobs:
         chmod +x $DIY_P2_SH
         cd openwrt        
         $GITHUB_WORKSPACE/$DIY_P2_SH 
-        mkdir -p /workdir/openwrt/dl
-        cp -r $GITHUB_WORKSPACE/library/* /workdir/openwrt/dl/
+        # mkdir -p /workdir/openwrt/dl
+        # cp -r $GITHUB_WORKSPACE/library/* /workdir/openwrt/dl/
         df -hT
         ls /workdir/openwrt/dl/
 
