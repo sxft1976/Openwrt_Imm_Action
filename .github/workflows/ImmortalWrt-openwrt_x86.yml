@@ -105,6 +105,7 @@ jobs:
         cd openwrt        
         $GITHUB_WORKSPACE/$DIY_P2_SH 
         df -hT
+        make clean
 
     - name: Get architecture
       working-directory: ${{ github.workspace }}/openwrt
