@@ -82,10 +82,7 @@ jobs:
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-        cd /workdir/openwrt/package/lean/libcryptopp
-        # rm /workdir/openwrt/package/lean/libcryptopp/Makefile
-        # cp -r $GITHUB_WORKSPACE/library/Makefile  /workdir/openwrt/package/lean/libcryptopp/Makefile
-        # cat /workdir/openwrt/package/lean/libcryptopp/Makefile
+        
 
     - name: Load custom feeds
       run: |
@@ -108,11 +105,8 @@ jobs:
         chmod +x $DIY_P2_SH
         cd openwrt        
         $GITHUB_WORKSPACE/$DIY_P2_SH 
-        # mkdir -p /workdir/openwrt/dl
-        # cp -r $GITHUB_WORKSPACE/library/* /workdir/openwrt/dl/
         df -hT
-        ls /workdir/openwrt/dl/
-
+        
     
     - name: Download package
       id: package
