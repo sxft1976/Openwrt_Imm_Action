@@ -106,7 +106,7 @@ jobs:
         $GITHUB_WORKSPACE/$DIY_P2_SH 
         df -hT
 
-   - name: Get architecture
+    - name: Get architecture
       working-directory: ${{ github.workspace }}/openwrt
       run: |
         TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*=y$" ".config" | head -n 1 | sed 's/^CONFIG_TARGET_//g' | sed 's/=y//g'| awk -F '_' '{print $1}')"
