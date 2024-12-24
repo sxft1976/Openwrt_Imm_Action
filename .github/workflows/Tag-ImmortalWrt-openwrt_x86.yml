@@ -23,7 +23,7 @@ env:
   FEEDS_CONF: feeds_config/tag_immortalwrt.feeds.conf.default
   DIY_P1_SH: diy_script/tag_immortalwrt_diy/diy-part1.sh 
   DIY_P2_SH: diy_script/tag_immortalwrt_diy/diy-part2.sh
-  RELEASE_TAG: 18.06-X86
+  RELEASE_TAG: tg-immortalwrt-X86
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_ARTIFACT: true
