@@ -8,7 +8,7 @@
 #
 # This is free software, licensed under the MIT License.
 # See /LICENSE for more information.
-#
+#99999999999999999999
 
 name: lede-openwrt_x86
 
@@ -204,4 +204,6 @@ jobs:
         keep_latest: 3
         delete_tags: true
       env:
-        GITHUB_TOKEN:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  
