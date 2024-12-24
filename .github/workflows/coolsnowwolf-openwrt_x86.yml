@@ -70,8 +70,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |             
         sudo -E apt-get -qq update
-        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/OpenWrtAction/raw/main/diy_script/lede_dependence )
-        sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
+        sudo -E apt-get -qq install $(curl -fsSL https://github.com/smallprogram/OpenWrtAction/raw/main/diy_script/lede_dependence)
         sudo timedatectl set-timezone "$TZ"
         df -hT
         ls 
