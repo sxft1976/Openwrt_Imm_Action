@@ -23,7 +23,7 @@ env:
   FEEDS_CONF: feeds_config/tag_immortalwrt.feeds.conf.default
   DIY_P1_SH: diy_script/tag_immortalwrt_diy/diy-part1.sh 
   DIY_P2_SH: diy_script/tag_immortalwrt_diy/diy-part2.sh
-  RELEASE_TAG: tg-immortalwrt-X86
+  RELEASE_TAG: immortalwrt-X86
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_ARTIFACT: true
@@ -177,7 +177,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=$RELEASE_TAG-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "release_tag=$RELEASE_TAG-REPO_BRANCH-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
