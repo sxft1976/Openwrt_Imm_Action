@@ -31,6 +31,24 @@ git clone https://github.com/jerrykuku/luci-app-argon-config.git ./package/custo
 # rm -rf ./package/lean/luci-app-adguardhome
 git clone https://github.com/rufengsuixing/luci-app-adguardhome.git ./package/custom_packages/luci-app-adguardhome
 
+# 移除luci-app-passwall及核心
+rm -rf feeds/luci/applications/luci-app-passwall
+# 核心
+rm -rf feeds/packages/net/{brook,chinadns-ng,dns2socks,dns2tcp,gn,hysteria,ipt2socks,microsocks,naiveproxy,pdnsd-alt,shadowsocks-rust,shadowsocksr-libev,simple-obfs}
+rm -rf feeds/packages/net/{sing-box,tcping,trojan-go,trojan-plus,trojan,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}
+
+## luci-app-passwall2
+#merge_package main https://github.com/xiaorouji/openwrt-passwall package luci-app-passwall
+merge_package main https://github.com/xiaorouji/openwrt-passwall2 package luci-app-passwall2
+
+# 核心
+git clone https://github.com/xiaorouji/openwrt-passwall-packages package/passwall-packages
+rm -rf package/passwall-packages/{chinadns-ng,dns2socks,dns2tcp,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-rust,shadowsocksr-libev,simple-obfs,sing-box}
+rm -rf package/passwall-packages/{tcping,trojan,trojan-plus,tuic-client,v2ray-core,v2ray-geodata,v2ray-plugin,xray-core,xray-plugin}
+merge_package v5 https://github.com/sbwml/openwrt_helloworld  package/passwall-packages chinadns-ng dns2socks dns2tcp hysteria ipt2socks microsocks naiveproxy shadowsocks-rust shadowsocksr-libev simple-obfs sing-box
+merge_package v5 https://github.com/sbwml/openwrt_helloworld  package/passwall-packages tcping trojan-plus trojan tuic-client v2ray-core v2ray-geodata v2ray-plugin xray-core xray-plugin
+
+
 
 
 # find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
