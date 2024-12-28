@@ -18,7 +18,7 @@ on:
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: v23.05.4
+  REPO_BRANCH: openwrt-24.10
   CONFIG_FILE: config/tag_imm_config/X86.config
   FEEDS_CONF: feeds_config/tag_immortalwrt.feeds.conf.default
   DIY_P1_SH: diy_script/tag_immortalwrt_diy/diy-part1.sh 
