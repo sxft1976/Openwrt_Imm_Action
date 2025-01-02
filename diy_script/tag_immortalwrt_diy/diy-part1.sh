@@ -48,9 +48,6 @@ rm -rf package/passwall-packages/{tcping,trojan,trojan-plus,tuic-client,v2ray-co
 merge_package v5 https://github.com/sbwml/openwrt_helloworld  package/passwall-packages chinadns-ng dns2socks dns2tcp hysteria ipt2socks microsocks naiveproxy shadowsocks-rust shadowsocksr-libev simple-obfs sing-box
 merge_package v5 https://github.com/sbwml/openwrt_helloworld  package/passwall-packages tcping trojan-plus trojan tuic-client v2ray-core v2ray-geodata v2ray-plugin xray-core xray-plugin
 
-
-
-
 # find ./ | grep Makefile | grep v2ray-geodata | xargs rm -f
 # find ./ | grep Makefile | grep mosdns | xargs rm -f
 
