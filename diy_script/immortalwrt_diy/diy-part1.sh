@@ -1,81 +1,53 @@
 #!/bin/bash
+#
+# Copyright (c) 2019-2025 SmallProgram <https://github.com/smallprogram>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+# https://github.com/smallprogram/OpenWrtAction
+# File name: diy-part1.sh
+# Description: OpenWrt DIY script part 1 (Before Update feeds)
+#
 
-# feeds扩展内容
-export repos=(
-  "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git;main"
-  "src-git passwall https://github.com/Openwrt-Passwall/openwrt-passwall.git;main"
-  "src-git passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2.git;main"
-  "src-git helloworld https://github.com/fw876/helloworld;master"
-  "src-git OpenClash https://github.com/vernesong/OpenClash;master"
-  "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main"
-  "src-git ghfu https://github.com/smallprogram/luci-app-ghfu.git;main"
-)
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PARENT_DIR="$(dirname "$CURRENT_DIR")"
+source "$PARENT_DIR/custom_feeds_and_packages.sh"
 
-# 自定义软件包列表
-clone_custom_packages () {
-    local path="./package/custom_packages/"
+# ---------------------------------------------------------------feeds update---------------------------------------------------------------
+# 备份原始 feeds.conf.default
+cp -a feeds.conf.default feeds.conf.default.bak
 
-    if [ "$GITHUB_ACTIONS" = "true" ] && [ -n "$GITHUB_RUN_ID" ] && [ -n "$GITHUB_WORKFLOW" ]; then
-        PATCHES_SRC_DIR="$GITHUB_WORKSPACE"
-    else
-        PATCHES_SRC_DIR="../OpenWrtAction"
-    fi
-
-
-    rm -rf ${path}
-    mkdir -p ${path}
-
-    git clone https://github.com/jerrykuku/luci-theme-argon.git ${path}luci-theme-argon
-    git clone https://github.com/jerrykuku/luci-app-argon-config.git ${path}luci-app-argon-config
-    git clone https://github.com/sirpdboy/luci-theme-kucat.git ${path}luci-theme-kucat
-    git clone https://github.com/sirpdboy/luci-app-kucat-config.git ${path}luci-app-kucat-config
-    git clone https://github.com/eamonxg/luci-theme-aurora.git ${path}luci-theme-aurora
-    git clone https://github.com/derisamedia/luci-theme-alpha-reborn.git ${path}luci-theme-alpha-reborn
-    git clone https://github.com/derisamedia/luci-theme-alpha.git ${path}luci-theme-alpha
-    git clone https://github.com/animegasan/luci-app-alpha-config.git ${path}luci-app-alpha-config
-    git clone https://github.com/AngelaCooljx/luci-theme-material3.git ${path}luci-theme-material3
-    # git clone https://github.com/rufengsuixing/luci-app-adguardhome.git ${path}luci-app-adguardhome
-    git clone https://github.com/sbwml/luci-app-mosdns -b v5 ${path}mosdns
-
-    # luci-app-netspeedtest source can't connect, use local copy instead
-    # git clone https://github.com/sirpdboy/luci-app-netspeedtest ${path}netspeedtest
-    git clone https://github.com/sirpdboy/netspeedtest.git ${path}netspeedtest
-    # cp -a $PATCHES_SRC_DIR/diy_script/custom_packages/netspeedtest ${path}
+# 删除 feeds.conf.default 中的注释行（以 # 开头）
+sed -i '/^#/d' feeds.conf.default
+sed -i -e 's|git.openwrt.org/feed|github.com/openwrt|g' -e 's|git.openwrt.org/project|github.com/openwrt|g' feeds.conf.default
 
 
-    git clone https://github.com/timsaya/openwrt-bandix.git ${path}openwrt-bandix
-    git clone https://github.com/timsaya/luci-app-bandix.git ${path}luci-app-bandix
-    git clone https://github.com/timsaya/openwrt-bandix-plus.git ${path}openwrt-bandix-plus
-    git clone https://github.com/timsaya/luci-app-bandix-plus.git ${path}luci-app-bandix-plus
-    
+# 创建临时文件
+temp_file=$(mktemp)
 
-    git clone https://github.com/destan19/OpenAppFilter.git ${path}OpenAppFilter
+# 倒序遍历 repos 数组
+for ((i=${#repos[@]}-1; i>=0; i--)); do
+  repo="${repos[$i]}"
+  # 提取 feed 名称（src-git 后的第一个字段）
+  feed_name=$(echo "$repo" | awk '{print $2}')
+  
+  # 检查 feeds.conf.default 是否包含该 feed 名称
+  if ! grep -q "src-git $feed_name " feeds.conf.default; then
+    # 如果不存在，将该 repo 插入到临时文件的第一行
+    echo "$repo" > "$temp_file"
+    cat feeds.conf.default >> "$temp_file"
+    mv "$temp_file" feeds.conf.default
+    echo "Added: $repo"
+  else
+    echo "Skipped (already exists): $repo"
+  fi
+done
 
-    
+# 清理临时文件（如果仍然存在）
+[ -f "$temp_file" ] && rm "$temp_file"
 
-    # sed -i '/^[\t ]*PKG_VERSION:=/ s/\(PKG_VERSION:= *\)[^0-9.]*\([0-9.]*\)[^0-9.]*/\1\2/' "${path}luci-theme-alpha-reborn/Makefile"
-    sed -i '/^[\t ]*PKG_VERSION:=/ s/\(PKG_VERSION:= *\)[^0-9.]*\([0-9.]*\)[^0-9.]*/\1\2/' "${path}luci-theme-alpha/Makefile"
+echo "Updated feeds.conf.default"
+# ---------------------------------------------------------------end feeds update---------------------------------------------------------------
 
-    
-    local target="luci.main.mediaurlbase="
-
-    echo "开始全量扫描并注释目标字符串, 取消主题自动设置为默认主题..."
-    # 1. 扫描所有 Makefile 文件
-    # 2. 扫描所有 uci-defaults 目录下的文件
-    find "$path" -type f \( -name "Makefile" -o -path "*/etc/uci-defaults/*" \) | while read -r file; do
-        
-        # 这里的 grep 需要更宽松，因为 Makefile 里的行首可能是 Tab 或者是脚本定义的起始
-        if grep -q "$target" "$file"; then
-            echo "命中目标: $file"
-            
-            # 针对 Makefile 的特殊处理：
-            # Makefile 里的 postrm 脚本行首通常会有空格或 Tab
-            # 我们直接匹配包含 target 的行，并在该行非空字符前加 #
-            # 使用 [[:blank:]]* 兼容 Tab 和空格
-            sed -i "/$target/s/^\([[:blank:]]*\)\([^#[:blank:]]\)/\1# \2/" "$file"
-        fi
-    done
-
-    echo "注释处理完成。"
-}
-   echo "DIY1 is complate!"
+clone_custom_packages
