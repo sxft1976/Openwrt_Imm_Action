@@ -89,14 +89,14 @@ jobs:
         sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/Openwrt_Imm_Action/raw/main/diy_script/immortalwrt_dependence)
         sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
         sudo timedatectl set-timezone "$TZ"
-        df -hT
-        $PWD
+        df -hT $PWD
+        pwd
         ls 
                        
     - name: Clone source code
       working-directory: /home/runner/work/Openwrt_Imm_Action/Openwrt_Imm_Action/
       run: |
-        df -hT $PWD        
+        df -hT $PWD      
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /home/runner/work/Openwrt_Imm_Action/Openwrt_Imm_Action/openwrt $GITHUB_WORKSPACE/openwrt
 
