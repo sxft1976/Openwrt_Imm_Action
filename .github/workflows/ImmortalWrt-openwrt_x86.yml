@@ -90,6 +90,7 @@ jobs:
         sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
         sudo timedatectl set-timezone "$TZ"
         df -hT
+        df -hT $PWD
         ls 
                        
     - name: Clone source code
