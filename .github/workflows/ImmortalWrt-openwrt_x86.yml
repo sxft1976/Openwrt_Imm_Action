@@ -98,7 +98,7 @@ jobs:
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /root/openwrt $GITHUB_WORKSPACE/openwrt
+        ln -sf ./openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
       run: |
