@@ -94,11 +94,11 @@ jobs:
         ls 
                        
     - name: Clone source code
-      working-directory: ./
+      working-directory: /root/
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /root/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
       run: |
