@@ -86,9 +86,8 @@ jobs:
           echo ">>> 清理完成！当前磁盘状态："
           df -h /
 
-      # 3. 【核心】创建超大 Swap 虚拟内存 (防止编译中途 OOM 内存溢出)
-      - name: Create Massive Swap Space
-        run: |
+    - name: Create Massive Swap Space
+      run: |
           echo ">>> 正在创建 16GB Swap 虚拟内存..."
           sudo swapoff -a || true
           sudo rm -f /swapfile
@@ -249,7 +248,5 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  
 
   
