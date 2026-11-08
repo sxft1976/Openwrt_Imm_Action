@@ -50,18 +50,55 @@ jobs:
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
       
    
-    - name: Freeing up disk space
-      uses: easimon/maximize-build-space@master
-      with: 
-        root-reserve-mb: 6144
-        swap-size-mb: 10240
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-        remove-codeql: 'true'
-        remove-docker-images: 'true'
-        build-mount-path: '/workdir'
+    # 2. 【核心】极限清理磁盘空间 (手写复刻版)
+      - name: Maximize Build Space (Native Hardcore Clean)
+        run: |
+          echo ">>> 1. 卸载 Azure 扩展分区，释放隐藏空间..."
+          sudo umount /mnt || true
+          sudo rm -rf /mnt/* || true
+          
+          echo ">>> 2. 彻底卸载巨无霸软件 (Mono, Haskell, etc.)..."
+          sudo apt-get purge -y \
+            mono-complete \
+            ghc* \
+            google-cloud-sdk \
+            azure-cli \
+            powershell \
+            dotnet* \
+            swift* \
+            || true
+          
+          echo ">>> 3. 暴力删除预装的大型开发工具目录..."
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/lib/jvm || true
+          sudo rm -rf /usr/share/swift || true
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /opt/hostedtoolcache || true
+          
+          echo ">>> 4. 清理 Docker 镜像和缓存..."
+          docker system prune -af --volumes || true
+          
+          echo ">>> 5. 清理 apt 缓存和用户缓存..."
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo rm -rf /tmp/*
+          rm -rf ~/.cache/* ~/.npm/* ~/.gradle/*
+          
+          echo ">>> 清理完成！当前磁盘状态："
+          df -h /
 
+      # 3. 【核心】创建超大 Swap 虚拟内存 (防止编译中途 OOM 内存溢出)
+      - name: Create Massive Swap Space
+        run: |
+          echo ">>> 正在创建 16GB Swap 虚拟内存..."
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          echo ">>> Swap 创建成功！当前内存状态："
+          free -h
     - name: Checkout
       uses: actions/checkout@main
       
