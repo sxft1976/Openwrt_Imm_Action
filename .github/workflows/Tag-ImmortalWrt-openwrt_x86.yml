@@ -8,9 +8,9 @@
 #
 # This is free software, licensed under the MIT License.
 # See /LICENSE for more information.
-#99999999999999999999
 
-name: Tag-ImmortalWrt-openwrt_x86
+
+name: ImmortalWrt-openwrt_x86
 
 on:
   repository_dispatch:
@@ -18,11 +18,11 @@ on:
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: openwrt-23.05
-  CONFIG_FILE: config/tag_imm_config/X86.config
-  FEEDS_CONF: feeds_config/tag_immortalwrt.feeds.conf.default
-  DIY_P1_SH: diy_script/tag_immortalwrt_diy/diy-part1.sh 
-  DIY_P2_SH: diy_script/tag_immortalwrt_diy/diy-part2.sh
+  REPO_BRANCH: master
+  CONFIG_FILE: config/imm_config/X86.config
+  FEEDS_CONF: feeds_config/immortalwrt.feeds.conf.default
+  DIY_P1_SH: diy_script/immortalwrt_diy/diy-part1.sh 
+  DIY_P2_SH: diy_script/immortalwrt_diy/diy-part2.sh
   RELEASE_TAG: immortalwrt-X86
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
@@ -32,7 +32,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 1000
     steps:    
     - name: Check Server Performance
@@ -50,55 +50,33 @@ jobs:
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
       
    
-    # 2. 【核心】极限清理磁盘空间 (手写复刻版)
-      - name: Maximize Build Space (Native Hardcore Clean)
-        run: |
-          echo ">>> 1. 卸载 Azure 扩展分区，释放隐藏空间..."
-          sudo umount /mnt || true
-          sudo rm -rf /mnt/* || true
-          
-          echo ">>> 2. 彻底卸载巨无霸软件 (Mono, Haskell, etc.)..."
-          sudo apt-get purge -y \
-            mono-complete \
-            ghc* \
-            google-cloud-sdk \
-            azure-cli \
-            powershell \
-            dotnet* \
-            swift* \
-            || true
-          
-          echo ">>> 3. 暴力删除预装的大型开发工具目录..."
-          sudo rm -rf /usr/local/lib/android || true
-          sudo rm -rf /usr/lib/jvm || true
-          sudo rm -rf /usr/share/swift || true
-          sudo rm -rf /usr/share/dotnet || true
-          sudo rm -rf /opt/hostedtoolcache || true
-          
-          echo ">>> 4. 清理 Docker 镜像和缓存..."
-          docker system prune -af --volumes || true
-          
-          echo ">>> 5. 清理 apt 缓存和用户缓存..."
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-          sudo rm -rf /tmp/*
-          rm -rf ~/.cache/* ~/.npm/* ~/.gradle/*
-          
-          echo ">>> 清理完成！当前磁盘状态："
-          df -h /
+    - name: 极限清理磁盘空间
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: false
+        
+    - name: 手动创建 Swap 虚拟内存
+      run: |
+        sudo swapoff /swapfile || true
+        sudo rm -f /swapfile
+        sudo fallocate -l 4G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
 
-      # 3. 【核心】创建超大 Swap 虚拟内存 (防止编译中途 OOM 内存溢出)
-      - name: Create Massive Swap Space
-        run: |
-          echo ">>> 正在创建 16GB Swap 虚拟内存..."
-          sudo swapoff -a || true
-          sudo rm -f /swapfile
-          sudo fallocate -l 16G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          echo ">>> Swap 创建成功！当前内存状态："
-          free -h
+    - name: 检查清理后的磁盘空间
+      run: |
+        echo "清理并挂载 Swap 完成"
+        echo "=============================================================================="
+        df -hT
+        echo "=============================================================================="
+
     - name: Checkout
       uses: actions/checkout@main
       
@@ -107,27 +85,27 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |             
-        sudo apt update -y
-        sudo apt full-upgrade -y
-        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/Openwrt_Imm_Action/raw/main/diy_script/tag_immortalwrt_dependence)
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/Openwrt_Imm_Action/raw/main/diy_script/immortalwrt_dependence)
         sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
         sudo timedatectl set-timezone "$TZ"
-        df -hT
+        df -hT $PWD
+        pwd
         ls 
                        
     - name: Clone source code
-      working-directory: /workdir
+      working-directory: /home/runner/work/Openwrt_Imm_Action/Openwrt_Imm_Action/
       run: |
-        df -hT $PWD
+        df -hT $PWD      
         git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /home/runner/work/Openwrt_Imm_Action/Openwrt_Imm_Action/openwrt $GITHUB_WORKSPACE/openwrt
 
-    - name: Load custom feeds
-      run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
-        cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
+    #- name: Load custom feeds
+    #  run: |
+        # [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        #chmod +x $DIY_P1_SH
+        #cd openwrt
+        #$GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
@@ -215,20 +193,20 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=$RELEASE_TAG-$REPO_BRANCH-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "release_tag=$RELEASE_TAG-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
-      uses: softprops/action-gh-release@v2
+      uses: ncipollo/release-action@v1.14.0
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.tag.outputs.release_tag }}
-        body_path: release.txt
-        files: ${{ env.FIRMWARE }}/*
+        tag: ${{ steps.tag.outputs.release_tag }}
+        bodyFile: "release.txt"
+        artifacts: ${{ env.FIRMWARE }}/*
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
@@ -244,5 +222,3 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  
