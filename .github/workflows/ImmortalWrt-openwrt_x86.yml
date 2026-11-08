@@ -50,25 +50,54 @@ jobs:
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
       
    
-    - name: 极限清理磁盘空间
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: true
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: false
-        
-    - name: 手动创建 Swap 虚拟内存
-      run: |
-        sudo swapoff /swapfile || true
-        sudo rm -f /swapfile
-        sudo fallocate -l 4G /swapfile
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
+    - name: Maximize Build Space (Native Hardcore Clean)
+        run: |
+          echo ">>> 1. 卸载 Azure 扩展分区，释放隐藏空间..."
+          sudo umount /mnt || true
+          sudo rm -rf /mnt/* || true
+          
+          echo ">>> 2. 彻底卸载巨无霸软件 (Mono, Haskell, etc.)..."
+          sudo apt-get purge -y \
+            mono-complete \
+            ghc* \
+            google-cloud-sdk \
+            azure-cli \
+            powershell \
+            dotnet* \
+            swift* \
+            || true
+          
+          echo ">>> 3. 暴力删除预装的大型开发工具目录..."
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/lib/jvm || true
+          sudo rm -rf /usr/share/swift || true
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /opt/hostedtoolcache || true
+          
+          echo ">>> 4. 清理 Docker 镜像和缓存..."
+          docker system prune -af --volumes || true
+          
+          echo ">>> 5. 清理 apt 缓存和用户缓存..."
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo rm -rf /tmp/*
+          rm -rf ~/.cache/* ~/.npm/* ~/.gradle/*
+          
+          echo ">>> 清理完成！当前磁盘状态："
+          df -h /
+
+      # 3. 【核心】创建超大 Swap 虚拟内存 (防止编译中途 OOM 内存溢出)
+      - name: Create Massive Swap Space
+        run: |
+          echo ">>> 正在创建 16GB Swap 虚拟内存..."
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          echo ">>> Swap 创建成功！当前内存状态："
+          free -h
 
     - name: 检查清理后的磁盘空间
       run: |
@@ -86,7 +115,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |             
         sudo -E apt-get -qq update
-        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1976/Openwrt_Imm_Action/raw/main/diy_script/immortalwrt_dependence)
+        sudo -E apt-get -qq install $(curl -fsSL https://github.com/sxft1978/Openwrt/raw/main/diy_script/immortalwrt_dependence)
         sudo chown $USER:$GROUPS $GITHUB_WORKSPACE
         sudo timedatectl set-timezone "$TZ"
         df -hT $PWD
@@ -137,9 +166,7 @@ jobs:
         skip: 'true'
         toolchain: 'true'
         clean: 'false'
-        prefix: ${{ github.workspace }}/openwrt
-
-         
+        prefix: ${{ github.workspace }}/openwrt         
  
     - name: Download package
       id: package
