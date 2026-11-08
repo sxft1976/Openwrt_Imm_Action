@@ -51,7 +51,7 @@ jobs:
       
    
     - name: Maximize Build Space (Native Hardcore Clean)
-        run: |
+      run: |
           echo ">>> 1. 卸载 Azure 扩展分区，释放隐藏空间..."
           sudo umount /mnt || true
           sudo rm -rf /mnt/* || true
