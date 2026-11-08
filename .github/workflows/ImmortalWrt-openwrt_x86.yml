@@ -32,7 +32,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 1000
     steps:    
     - name: Check Server Performance
@@ -48,9 +48,10 @@ jobs:
         echo -e "$(sudo lshw -short -C memory | grep GiB) \n"
         echo "--------------------------硬盘信息--------------------------"
         echo "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
-        
+      
+   
     - name: Maximize Build Space (Native Hardcore Clean)
-      run: |
+        run: |
           echo ">>> 1. 卸载 Azure 扩展分区，释放隐藏空间..."
           sudo umount /mnt || true
           sudo rm -rf /mnt/* || true
@@ -85,8 +86,9 @@ jobs:
           echo ">>> 清理完成！当前磁盘状态："
           df -h /
 
-    - name: Create Massive Swap Space
-      run: |
+      # 3. 【核心】创建超大 Swap 虚拟内存 (防止编译中途 OOM 内存溢出)
+      - name: Create Massive Swap Space
+        run: |
           echo ">>> 正在创建 16GB Swap 虚拟内存..."
           sudo swapoff -a || true
           sudo rm -f /swapfile
@@ -247,5 +249,7 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  
 
   
